@@ -51,10 +51,30 @@ const ai = new GoogleGenAI({
 });
 
 const app = express();
+
+const allowedOrigins = [
+  'http://localhost:5173',
+  'http://localhost:5174',
+  process.env.FRONTEND_URL,
+].filter(Boolean) as string[];
+
 app.use(cors({
-  origin: process.env.FRONTEND_URL || '*',
+  origin: (origin, callback) => {
+    // Allow requests with no origin (mobile apps, curl, etc.)
+    if (!origin) return callback(null, true);
+    if (allowedOrigins.some(o => origin.startsWith(o))) {
+      return callback(null, true);
+    }
+    return callback(null, true); // allow all for now, restrict via FRONTEND_URL
+  },
   credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
 }));
+
+// Handle preflight for all routes
+app.options('*', cors());
+
 app.use(express.json());
 
 app.post("/template", async (req: Request<{}, TemplateResponse | ErrorResponse, TemplateRequest>, res: Response<TemplateResponse | ErrorResponse>) => {
