@@ -59,21 +59,13 @@ const allowedOrigins = [
 ].filter(Boolean) as string[];
 
 app.use(cors({
-  origin: (origin, callback) => {
-    // Allow requests with no origin (mobile apps, curl, etc.)
-    if (!origin) return callback(null, true);
-    if (allowedOrigins.some(o => origin.startsWith(o))) {
-      return callback(null, true);
-    }
-    return callback(null, true); // allow all for now, restrict via FRONTEND_URL
-  },
+  origin: allowedOrigins,
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
 }));
 
-// Handle preflight for all routes
-app.options('*', cors());
+app.options('*', cors({ origin: allowedOrigins, credentials: true }));
 
 app.use(express.json());
 
